@@ -1,20 +1,28 @@
-import React, { useState } from 'react';
-import { useGetUsersQuery, useAddUsersMutation, useDeleteUserMutation, useSearchUserMutation } from '../RTK/userApi';
+import React, { useState } from "react";
+import {
+  useGetUsersQuery,
+  useAddUsersMutation,
+  useDeleteUserMutation,
+  useSearchUsersQuery,
+} from "../RTK/userApi";
 
 const User = () => {
   const { data: users, isLoading, isError, refetch } = useGetUsersQuery();
   const [addUser] = useAddUsersMutation();
   const [deleteUser] = useDeleteUserMutation();
-  const [searchUser] = useSearchUserMutation();
-  const [newUser, setNewUser] = useState({ name: '', email: '' });
+  const [searchTerm, setSearchTerm] = useState("");
+  const { data: searchResults } = useSearchUsersQuery(searchTerm, {
+    skip: !searchTerm, // Skip the query if searchTerm is empty
+  });
+  const [newUser, setNewUser] = useState({ name: "", email: "" });
 
   const handleAddUser = async () => {
     try {
       await addUser(newUser).unwrap();
-      setNewUser({ name: '', email: '' });
+      setNewUser({ name: "", email: "" });
       refetch(); // Reset form after adding user
     } catch (error) {
-      console.error('Failed to add user: ', error);
+      console.error("Failed to add user: ", error);
     }
   };
 
@@ -23,24 +31,22 @@ const User = () => {
       await deleteUser(id).unwrap();
       refetch();
     } catch (error) {
-      console.error('Failed to delete user: ', error);
+      console.error("Failed to delete user: ", error);
     }
   };
 
-  const handleSearchUser = async (id) => {
-    try {
-      await searchUser(id).unwrap();
-    } catch (error) {
-      console.error('Failed to search user: ', error);
-  }
-}
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const displayUsers = searchTerm ? searchResults : users;
 
   return (
     <div>
       {isLoading && <h3>Loading...</h3>}
       {isError && <h3>Error fetching users.</h3>}
       <ul>
-        {(users?.slice().reverse() || []).map(user => (
+        {(displayUsers?.slice().reverse() || []).map((user) => (
           <li key={user.id}>
             {user.name} - {user.email}
             <button onClick={() => handleDeleteUser(user.id)}>Delete</button>
@@ -65,7 +71,8 @@ const User = () => {
         <input
           type="text"
           placeholder="Search by name"
-          onChange={(e) => handleSearchUser(e.target.value)}
+          value={searchTerm}
+          onChange={handleSearchChange}
         />
       </>
     </div>
