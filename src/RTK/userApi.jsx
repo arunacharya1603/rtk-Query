@@ -27,7 +27,14 @@ export const userApi = createApi({
       }),
       invalidatesTags: (result, error, id) => [{ type: 'User', id }], // Invalidate the specific user
     }),
+    searchUser: builder.mutation({
+      query: (name) => ({
+        url: `/crud?name=${name}`,
+        method: "GET",
+      }),
+      providesTags: (result, error, name) => [{ type: 'User', id: 'LIST' }], // Invalidate the entire list
+    })
   }),
 });
 
-export const { useGetUsersQuery, useAddUsersMutation, useDeleteUserMutation } = userApi;
+export const { useGetUsersQuery, useAddUsersMutation, useDeleteUserMutation, useSearchUserMutation } = userApi;

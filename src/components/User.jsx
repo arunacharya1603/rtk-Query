@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { useGetUsersQuery, useAddUsersMutation, useDeleteUserMutation } from '../RTK/userApi';
+import { useGetUsersQuery, useAddUsersMutation, useDeleteUserMutation, useSearchUserMutation } from '../RTK/userApi';
 
 const User = () => {
   const { data: users, isLoading, isError, refetch } = useGetUsersQuery();
   const [addUser] = useAddUsersMutation();
   const [deleteUser] = useDeleteUserMutation();
+  const [searchUser] = useSearchUserMutation();
   const [newUser, setNewUser] = useState({ name: '', email: '' });
 
   const handleAddUser = async () => {
@@ -26,6 +27,14 @@ const User = () => {
     }
   };
 
+  const handleSearchUser = async (id) => {
+    try {
+      await searchUser(id).unwrap();
+    } catch (error) {
+      console.error('Failed to search user: ', error);
+  }
+}
+
   return (
     <div>
       {isLoading && <h3>Loading...</h3>}
@@ -38,7 +47,7 @@ const User = () => {
           </li>
         ))}
       </ul>
-      <div>
+      <>
         <input
           type="text"
           placeholder="Name"
@@ -52,7 +61,13 @@ const User = () => {
           onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
         />
         <button onClick={handleAddUser}>Add User</button>
-      </div>
+        <br />
+        <input
+          type="text"
+          placeholder="Search by name"
+          onChange={(e) => handleSearchUser(e.target.value)}
+        />
+      </>
     </div>
   );
 };
